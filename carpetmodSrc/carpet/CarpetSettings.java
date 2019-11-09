@@ -694,6 +694,16 @@ public class CarpetSettings
     @SurvivalDefault
     public static boolean portalCaching = false;
 
+    @Rule(desc = "Caching over a larger area for portals", category = {SURVIVAL, EXPERIMENTAL}, options = {"1", "8", "64"}, validator = "validatePortalNetherCacheArea", extra = {
+            "1 is default behaviour, 64 is similar behaviour to overworld. Divides coordinates for cache by this value for entities going nether -> overworld."
+    })
+    @CreativeDefault
+    @SurvivalDefault
+    public static int portalNetherAreaCache = 1;
+    private static boolean validatePortalNetherCacheArea(int value) {
+        return value > 0;
+    }
+
     @Rule(desc = "The percentage of required sleeping players to skip the night", category = EXPERIMENTAL, options = {"0", "10", "50", "100"}, validator = "validateSleepingThreshold", extra = {
             "Use values from 0 to 100, 100 for default (all players needed)"
     })
