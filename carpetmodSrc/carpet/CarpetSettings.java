@@ -24,6 +24,7 @@ import carpet.helpers.ScoreboardDelta;
 import carpet.patches.BlockWool;
 import carpet.utils.TickingArea;
 import carpet.worldedit.WorldEditBridge;
+import net.minecraft.block.BlockFalling;
 import net.minecraft.init.Blocks;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -43,7 +44,7 @@ public class CarpetSettings
     public static boolean locked = false;
 
     // TODO: replace these constants at build time
-    public static final String carpetVersion = "v19_11_06 beta";
+    public static final String carpetVersion = "v20_01_01";
     public static final String minecraftVersion = "1.12.2";
     public static final String mcpMappings = "39-1.12";
 
@@ -112,8 +113,42 @@ public class CarpetSettings
     @Rule(desc = "Enables /waypoint for saving coordinates", category = COMMANDS)
     public static boolean commandWaypoint = true;
 
+    @Rule(desc = "Disables players in /c from spectating other players", category = COMMANDS)
+    public static boolean cameraModeDisableSpectatePlayers;
+
+    @Rule(desc = "Places players back to the original location when using camera mode by using /c then /s", category = COMMANDS)
+    public static boolean cameraModeRestoreLocation;
 
     // ===== CREATIVE TOOLS ===== //
+
+    @Rule(desc = "Sets the instant falling flag to true. The boolean used in world population that can be exploited turning true making falling blocks fall instantly.", category = CREATIVE, validator = "validateInstantFallingFlag")
+    public static boolean instantFallingFlag = false;
+
+    private static boolean validateInstantFallingFlag(boolean value) {
+        if (value) {
+            BlockFalling.fallInstantly = true;
+        }else {
+            BlockFalling.fallInstantly = false;
+        }
+        return true;
+    }
+
+    @Rule(desc = "Sets the instant scheduled updates instantly to true. The boolean used in world population that can be exploited turning true making all repeaters, comperators, observers and similar components update instantly.", category = CREATIVE, validator = "validateInstantScheduling")
+    public static boolean instantScheduling = false;
+    private static boolean validateInstantScheduling(boolean value) {
+        if (value) {
+            for (int dim = 0; dim < 3; dim++) {
+                WorldServer world = CarpetServer.minecraft_server.worlds[dim];
+                world.scheduledUpdatesAreImmediate = true;
+            }
+        }else {
+            for (int dim = 0; dim < 3; dim++) {
+                WorldServer world = CarpetServer.minecraft_server.worlds[dim];
+                world.scheduledUpdatesAreImmediate = false;
+            }
+        }
+        return true;
+    }
 
     @Rule(desc = "Quasi Connectivity doesn't require block updates.", category = EXPERIMENTAL, extra = {
             "All redstone components will send extra block updates downwards",
@@ -141,6 +176,9 @@ public class CarpetSettings
 
     @Rule(desc = "Removes random TNT momentum when primed", category = TNT)
     public static boolean tntPrimerMomentumRemoved = false;
+
+    @Rule(desc = "Enables controlable TNT jump angle RNG for debuging.", category = TNT)
+    public static boolean TNTAdjustableRandomAngle;
 
     @Rule(desc = "Allows to place blocks in different orientations. Requires Carpet Client", category = CREATIVE, extra = {
             "Also prevents rotations upon placement of dispensers and furnaces",
@@ -355,10 +393,31 @@ public class CarpetSettings
 
     @Rule(desc = "Allows players to place blocks inside entity's.", category = {CREATIVE})
     public static boolean ignoreEntityWhenPlacing = false;
+
+    public static enum WhereToChunkSavestate {
+        unload(false), everywhere_except_players(true), everywhere(true);
+        public final boolean canUnloadNearPlayers;
+        WhereToChunkSavestate(boolean canUnloadNearPlayers) {
+            this.canUnloadNearPlayers = canUnloadNearPlayers;
+        }
+    }
+
+    @Rule(desc = "Where chunk savestating is allowed to happen", category = CREATIVE)
+    public static WhereToChunkSavestate whereToChunkSavestate = WhereToChunkSavestate.unload;
+
+    @Rule(desc = "When true, the game acts as if a permaloader is running", category = CREATIVE)
+    public static boolean simulatePermaloader = false;
+
     // ===== FIXES ===== //
     /*
      * Rules in this category should end with the "Fix" suffix
      */
+
+    @Rule(desc = "Fixes the speed los on entitys after reload.", category = FIX)
+    public static boolean reloadEntitySpeedlossFix;
+
+    @Rule(desc = "Disables the packet limit that causes the book banning.", category = FIX)
+    public static boolean disableBookBan;
 
     @Rule(desc = "Rule made to debug recipes by pasting all recipes when crafting.", category = FIX)
     public static boolean debugRecipes;
@@ -471,16 +530,36 @@ public class CarpetSettings
     @Rule(desc = "Blocks inherit the original light opacity and light values while being pushed with a piston", category = OPTIMIZATIONS)
     public static boolean movingBlockLightOptimization = false;
 
-    @Rule(desc = "Hopper duplication fix by Theosib. Fixed in 1.12.2", category = FIX)
-    @BugFixDefault
-    public static boolean hopperDuplicationFix = false;
-
     @Rule(desc = "Chunk saving issues that causes entites and blocks to duplicate or disappear", category = FIX, extra = "By Theosib")
     @BugFixDefault
     public static boolean entityDuplicationFix = false;
 
     @Rule(desc = "Fixes duplication of items when using item frames", category = FIX)
-    public static boolean itemFrameDuplicationFix = false;
+    public static boolean duplicationFixItemFrame = false;
+
+    @Rule(desc = "Fixes duplication of items when using gravity blocks through portals", category = FIX)
+    public static boolean duplicationFixGravityBlocks = false;
+
+    @Rule(desc = "Fixes duplication of items when entitys enter end portals and die the same time", category = FIX)
+    public static boolean duplicationFixPortalEntitys = false;
+
+    @Rule(desc = "Fixes duplication of TNT when pushed by pistons", category = FIX)
+    public static boolean duplicationFixMovingTNT = false;
+
+    @Rule(desc = "Fixes duplication of rails when pushed by pistons", category = FIX)
+    public static boolean duplicationFixMovingRail = false;
+
+    @Rule(desc = "Fixes duplication of carpets when pushed by pistons", category = FIX)
+    public static boolean duplicationFixMovingCarpets = false;
+
+    @Rule(desc = "Fixes duplication of items when players drop items on the ground and log out the same time", category = FIX)
+    public static boolean duplicationFixLogout = false;
+
+    @Rule(desc = "Fixes duplication of entitys when players log out riding entitys in unloaded chunks", category = FIX)
+    public static boolean duplicationFixRidingEntitys = false;
+
+    @Rule(desc = "Fixes duplication of blocks when using update suppression", category = FIX)
+    public static boolean duplicationFixUpdateSuppression = false;
 
     @Rule(desc = "Uses alternative lighting engine by PhiPros. AKA NewLight mod", category = OPTIMIZATIONS)
     public static boolean newLight = false;
@@ -738,6 +817,9 @@ public class CarpetSettings
     private static boolean validateTileTickLimit(int value) {
         return value >= -1;
     }
+    
+    @Rule(desc = "Redstone ore blocks can redirect redstone dust", category = {EXPERIMENTAL, FEATURE})
+    public static boolean redstoneOreRedirectsDust = false;
 
     @Rule(desc = "Adds back the crafting window duplication bug.", category = EXPERIMENTAL)
     public static boolean craftingWindowDuplication = false;
