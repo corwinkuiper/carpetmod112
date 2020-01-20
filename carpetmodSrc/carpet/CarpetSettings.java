@@ -783,6 +783,11 @@ public class CarpetSettings
         return value > 0;
     }
 
+    @Rule(desc = "Ender Pearl ownership persist across player disconnects", category = {SURVIVAL, EXPERIMENTAL})
+    @CreativeDefault
+    @SurvivalDefault
+    public static boolean enderPearlPersistence = false;
+
     @Rule(desc = "The percentage of required sleeping players to skip the night", category = EXPERIMENTAL, options = {"0", "10", "50", "100"}, validator = "validateSleepingThreshold", extra = {
             "Use values from 0 to 100, 100 for default (all players needed)"
     })

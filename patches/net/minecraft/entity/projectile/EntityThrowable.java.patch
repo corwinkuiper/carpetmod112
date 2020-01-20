@@ -1,16 +1,24 @@
 --- ../src-base/minecraft/net/minecraft/entity/projectile/EntityThrowable.java
 +++ ../src-work/minecraft/net/minecraft/entity/projectile/EntityThrowable.java
-@@ -21,6 +21,9 @@
+@@ -21,6 +21,10 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldServer;
  
 +import carpet.logging.logHelpers.TrajectoryLogHelper;
 +import carpet.logging.LoggerRegistry;
++import carpet.CarpetSettings;
 +
  public abstract class EntityThrowable extends Entity implements IProjectile
  {
      private int field_145788_c;
-@@ -36,6 +39,8 @@
+@@ -30,12 +34,15 @@
+     protected boolean field_174854_a;
+     public int field_70191_b;
+     protected EntityLivingBase field_70192_c;
++    private UUID throwerUUID; //persistent ender pearls
+     private String field_85053_h;
+     private int field_70194_h;
+     private int field_70195_i;
      public Entity field_184539_c;
      private int field_184540_av;
  
@@ -19,7 +27,7 @@
      public EntityThrowable(World p_i1776_1_)
      {
          super(p_i1776_1_);
-@@ -43,6 +48,11 @@
+@@ -43,6 +50,11 @@
          this.field_145786_d = -1;
          this.field_145787_e = -1;
          this.func_70105_a(0.25F, 0.25F);
@@ -31,7 +39,15 @@
      }
  
      public EntityThrowable(World p_i1778_1_, double p_i1778_2_, double p_i1778_4_, double p_i1778_6_)
-@@ -268,9 +278,24 @@
+@@ -55,6 +67,7 @@
+     {
+         this(p_i1777_1_, p_i1777_2_.field_70165_t, p_i1777_2_.field_70163_u + (double)p_i1777_2_.func_70047_e() - 0.10000000149011612D, p_i1777_2_.field_70161_v);
+         this.field_70192_c = p_i1777_2_;
++        this.throwerUUID = p_i1777_2_.func_110124_au(); // persistent ender pearls
+     }
+ 
+     protected void func_70088_a()
+@@ -268,9 +281,24 @@
              this.field_70181_x -= (double)f2;
          }
  
@@ -56,3 +72,54 @@
      protected float func_70185_h()
      {
          return 0.03F;
+@@ -298,6 +326,10 @@
+         }
+ 
+         p_70014_1_.func_74778_a("ownerName", this.field_85053_h == null ? "" : this.field_85053_h);
++
++        // persistent ender pearls - NOTE: The NBT readers and writers can be removed if you don't care about persistence
++        // between chunk reloads. It is included because it is assumed you happen to care about this.
++        p_70014_1_.func_74778_a("CARPET-ownerUUID", this.throwerUUID == null ? "": this.throwerUUID.toString());
+     }
+ 
+     public void func_70037_a(NBTTagCompound p_70037_1_)
+@@ -320,6 +352,16 @@
+         this.field_70192_c = null;
+         this.field_85053_h = p_70037_1_.func_74779_i("ownerName");
+ 
++        // -- persistent ender pearls start
++        // see note above regarding the validity of this being in the stored NBT data
++        String throwerUUIDStr = p_70037_1_.func_74779_i("CARPET-ownerUUID");
++        if (!throwerUUIDStr.isEmpty()) {
++            this.throwerUUID = UUID.fromString(throwerUUIDStr);
++        } else {
++            this.throwerUUID = null;
++        }
++        // -- end
++
+         if (this.field_85053_h != null && this.field_85053_h.isEmpty())
+         {
+             this.field_85053_h = null;
+@@ -331,6 +373,22 @@
+     @Nullable
+     public EntityLivingBase func_85052_h()
+     {
++
++        // -- persistent ender pearls start
++        if (CarpetSettings.enderPearlPersistence) {
++            if ((this.field_70192_c == null || this.field_70192_c.field_70128_L) && this.throwerUUID != null && this.field_70170_p instanceof WorldServer) {
++                Entity entity = ((WorldServer)this.field_70170_p).func_175733_a(this.throwerUUID);
++                if (entity instanceof EntityLivingBase) {
++                    this.field_70192_c = (EntityLivingBase) entity;
++                } else {
++                    this.field_70192_c = null;
++                }
++            }
++            return this.field_70192_c;
++        }
++        // -- end
++
++
+         if (this.field_70192_c == null && this.field_85053_h != null && !this.field_85053_h.isEmpty())
+         {
+             this.field_70192_c = this.field_70170_p.func_72924_a(this.field_85053_h);
