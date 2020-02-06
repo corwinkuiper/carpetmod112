@@ -44,7 +44,7 @@ public class CarpetSettings
     public static boolean locked = false;
 
     // TODO: replace these constants at build time
-    public static final String carpetVersion = "v20_01_01";
+    public static final String carpetVersion = "v20_02_05";
     public static final String minecraftVersion = "1.12.2";
     public static final String mcpMappings = "39-1.12";
 
@@ -62,6 +62,9 @@ public class CarpetSettings
 
     @Rule(desc = "Enables /tick command to control game speed", category = COMMANDS)
     public static boolean commandTick = true;
+
+    @Rule(desc = "Enables /profile command to profile lag", category = COMMANDS)
+    public static boolean commandProfile = true;
 
     @Rule(desc = "Enables /log command to monitor events in the game via chat and overlays", category = COMMANDS)
     public static boolean commandLog = true;
@@ -119,11 +122,13 @@ public class CarpetSettings
     @Rule(desc = "Places players back to the original location when using camera mode by using /c then /s", category = COMMANDS)
     public static boolean cameraModeRestoreLocation;
 
+    @Rule(desc = "Allows the use of scoreboardPublic, a lower permition level score display.", category = COMMANDS)
+    public static boolean commandPublicScoreboard = true;
+
     // ===== CREATIVE TOOLS ===== //
 
     @Rule(desc = "Sets the instant falling flag to true. The boolean used in world population that can be exploited turning true making falling blocks fall instantly.", category = CREATIVE, validator = "validateInstantFallingFlag")
     public static boolean instantFallingFlag = false;
-
     private static boolean validateInstantFallingFlag(boolean value) {
         if (value) {
             BlockFalling.fallInstantly = true;
@@ -468,18 +473,19 @@ public class CarpetSettings
     @BugFixDefault
     public static boolean growingUpWallJumpFix = false;
 
-    @Rule(desc = "Won't let mobs glitch into blocks when reloaded.", category = {FIX, EXPERIMENTAL}, validator = "validateReloadSuffocationFix", extra = {
-            "Can cause slight differences in mobs behaviour"
-    })
+//    @Rule(desc = "Won't let mobs glitch into blocks when reloaded.", category = {FIX, EXPERIMENTAL}, validator = "validateReloadSuffocationFix", extra = {
+//            "Can cause slight differences in mobs behaviour"
+//    })
+    @Rule(desc = "Won't let mobs glitch into blocks when reloaded.", category = FIX)
     @BugFixDefault
     public static boolean reloadSuffocationFix = false;
-    private static boolean validateReloadSuffocationFix(boolean value) {
-        if (value)
-            AxisAlignedBB.margin = 1.0 / (1L << 27);
-        else
-            AxisAlignedBB.margin = 0;
-        return true;
-    }
+//    private static boolean validateReloadSuffocationFix(boolean value) {
+//        if (value)
+//            AxisAlignedBB.margin = 1.0 / (1L << 27);
+//        else
+//            AxisAlignedBB.margin = 0;
+//        return true;
+//    }
 
     @Rule(desc = "Redstone dust algorithm", category = {EXPERIMENTAL, OPTIMIZATIONS}, extra = {
             "Fast redstone dust by Theosib",
@@ -627,12 +633,12 @@ public class CarpetSettings
     @BugFixDefault
     public static boolean ridingPlayerUpdateFix = false;
 
-    @Rule(desc = "Fixes players clipping through moving piston blocks partially.", category = FIX, options = {"0", "20", "40", "100"}, validator = "validatePistonClippingFix")
+//    @Rule(desc = "Fixes players clipping through moving piston blocks partially.", category = FIX, options = {"0", "20", "40", "100"}, validator = "validatePistonClippingFix")
     public static int pistonClippingFix = 0;
-    private static boolean validatePistonClippingFix(int pistonClippingFix) {
-        // TODO
-        return true;
-    }
+//    private static boolean validatePistonClippingFix(int pistonClippingFix) {
+//        // TODO
+//        return true;
+//    }
 
     @Rule(desc = "Recovers potion effects when they were replaced and the replacement ended", category = FIX)
     @BugFixDefault
@@ -673,6 +679,12 @@ public class CarpetSettings
     public static boolean playerChunkLoadingFix = false;
 
     // ===== FEATURES ===== //
+
+    @Rule(desc = "Allows empty shulkerboxes to stack in the player inventory.", category = FEATURE)
+    public static boolean stackableShulkersPlayerInventory;
+
+    @Rule(desc = "Allows fake players to gain stats.", category = FEATURE)
+    public static boolean fakePlayerStats;
 
     @Rule(desc = "Turns crafting tables into automated crafting tables with inventorys.", category = FEATURE, extra = "WARNING! If the rule is turned off after use, any inventory content in crafting tables will permanently become lost after chunks are reloaded.")
     public static boolean autocrafter;
